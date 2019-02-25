@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css'>
+
+    <link rel="stylesheet" href="Countries.css">
+    <script src="https://d3js.org/d3.v5.min.js">
+</script>
+</head>
+<body>
+    <h1>National Contiguity</h1>
+    <h3>By Amr Mahmoud</h3>
+    <div id='container'>
+        <div id='graph'>
+
+        <div id='flags'></div>
+    </div>
+
+    </div>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js'></script>
+
+    <script>
+    var margin = { top: 10, right: 10, bottom: 10, left: 10 },
+        width = 1400 - margin.left - margin.right,
+        height = 900 - margin.top - margin.bottom;
+    var svg = d3.select('body').append('svg')
+    .attr('width', width)
+    .attr('height',height)
+    var tooltip = d3.select('body').append('div')
+    .attr('class','tooltip' )
+    .style({
+        'background-color':'rgb(89, 21, 102)',
+        'color':'white',
+        'width' :'90px',
+        'font-family': 'sans-serif',
+        'text-anchor': 'middle',
+        'text-decoration-color': 'aqua',
+        'font-weight': 'bold'
+
+
+        
+    })
+    d3.json('https://raw.githubusercontent.com/DealPete/forceDirected/master/countries.json', 
+    function(data){
+        //extract node and links from the data
+        var nodes=data['nodes'];
+        var links=data['links'];
+        
+        var force = d3.layout.force()
+        .size([width,height])
+        .nodes(d3.values(nodes))
+        .links(links)
+       . on('tick',tick)
+        .linkDistance(300)
+        .start();
+   
+        var link=svg.selectAll('.link')
+    .data(links)
+    .enter().append('line')
+    .attr('class','link' );
+
+    var node = d3.select('#flags').selectAll('img')
+    .data(force.nodes())
+ 
+ .enter().append('img')
+ .attr('class',function (d) {
+     return 'flag flag-' + d.code;
+     
+    })
+.on('mouseover',mouseoverhandler)
+ .on('mousemove',mouseMoving)
+ .on('mouseout',mouseouthandler);
+
+ function tick(e) {
+     node.style('left',function (d) {
+         return d.x +'px';
+         
+     }).style('top',function(d){
+         return d.y + 'px';
+     }).call(force.drag);
+     
+    
+ link.attr('x1',function(d){return d.source.x})
+    .attr('y1',function(d){return d.source.y})
+    .attr('x2',function(d){return d.target.x})
+    .attr('y2',function(d){return d.target.y})
+ }
+     function mouseoverhandler(d) {
+         tooltip.transition().style('opacity',.9)
+         tooltip.html('<p>' + d['country'] +'</p>');
+     }
+      function mouseouthandler(){
+          tooltip.transition().style('opacity',0);
+
+      }
+       function mouseMoving(){
+           tooltip.style('top',(d3.event.pageY-10)+'px')
+                   .style('left',(d3.event.pageX+ 10)+ 'px')
+                    .style('color','white' );
+       }
+ })
+
+ 
+    </script>
+</body>
+</html>
